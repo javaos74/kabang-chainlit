@@ -10,4 +10,3 @@ langchain-core==0.2.34
 pypdf==3.8.1
 pinecone-client==5.0.1
 tiktoken==0.3.3
-langchain_pinecore==0.1.3

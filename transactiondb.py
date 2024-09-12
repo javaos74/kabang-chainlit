@@ -14,8 +14,10 @@ class TransactionDB:
     
     def list_requests(self, userid: str):
         cur = self.conn.cursor()
-        cur.execute("SELECT request_time, registration_nm, status FROM USER_REQUEST WHERE userid=?", (userid,)) 
-        result = cur.fetchall()
+        cur.execute("SELECT request_time as '요청일자', registration_nm as '등기번호', status as '처리상태' FROM USER_REQUEST WHERE userid=?", (userid,)) 
+        result = []
+        result.append( ('요청일자', '등기번호', '처리상태'))
+        result.extend( cur.fetchall())
         return result
         
 

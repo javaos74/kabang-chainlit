@@ -52,19 +52,13 @@ def auth_callback(username: str, password: str) -> Optional[cl.User]:
     match = localdb.authenticate( username, password)
     if match: # match ( userid, password, display_name, role) 
         config['configurable']['session_id'] = match[0] # user_id display_name
-        '''
-        with_message_history.invoke( 
-                        {"messages": [HumanMessage(f"저의 사용자 ID는 {username} 입니다.")]},
-                        config=config,
-                    )
-        '''
         return cl.User(identifier=match[1], metadata={"role": "USER"})
     else:
         return None
 
 @tool
 def check_post_delivery (postNum: str) -> str:
-    """등기번호 등기 배송 상태 조회 """
+    """등기번호 등기 배송 상태 조회하고 결과를 표를 보여줍니다. """
     print(f'등기번호: {postNum}')
     args = {
         'name': 'ToolCallingQ',
@@ -80,7 +74,7 @@ def check_post_delivery (postNum: str) -> str:
 
 @tool 
 def lookup_user_request( userid: str ) -> str:
-    '''사용자ID를 기반으로 사용자가 신청한 거래 내역서 조회'''
+    '''사용자ID를 기반으로 사용자가 신청한 거래 내역서 조회해서 결과를 표를 보여줍니다.'''
     print(f'거래 내역 조회 사용자 정보: {userid}')
     return localdb.list_requests(userid)
 
@@ -95,7 +89,7 @@ chain = prompt | llm
 
 config = {"configurable": {"session_id": None}}
 
-history_chain = RunnableWithMessageHistory(chain, get_session_history)
+#history_chain = RunnableWithMessageHistory(chain, get_session_history)
 
 mymsgs= []
     
@@ -105,8 +99,7 @@ async def on_message(message: cl.Message):
     mycontent= message.content
     mymsgs.append(HumanMessage(content=mycontent))
     while continue_flag:
-        #response = chain.invoke( mymsgs)
-        response = history_chain.invoke( {"messages": message})
+        response = chain.invoke( mymsgs)
         print( "Response: " , response.response_metadata, response.tool_calls) 
         if response.tool_calls:
             mymsgs.append( response)
@@ -117,17 +110,15 @@ async def on_message(message: cl.Message):
                     print("tool_calls_response: ", result)
                     #toolmsg = [ ToolMessage(content=result, name=tcall['name'],tool_call_id=tcall['id'] )]
                     mymsgs.append(result)
-                    response = history_chain.invoke( {'messages': result})
+                    response = chain.invoke( mymsgs)
                     await cl.Message( content=response.content).send()
-                    #mymsgs.remove( result)
                 elif tcall['name'] == 'check_post_delivery':
                     result = check_post_delivery.invoke( tcall)
                     print("tool_calls_response: ", result)
                     print(mymsgs)
                     mymsgs.append( result)
-                    response = history_chain.invoke( {'message': result})
+                    response = chain.invoke( mymsgs)
                     await cl.Message( content=response.content).send()
-                    #mymsgs.remove(result)
             continue_flag = False 
         else:
             await cl.Message(content=response.content).send()
@@ -140,8 +131,6 @@ async def on_chat_start():
     mymsgs.clear()
     cl.user_session.set("doc", None)
     if config['configurable']['session_id']: 
-        if store['session_id']: 
-            store['session_id'].clear()
         await cl.Message(
             content=f"안녕하세요 {config['configurable']['session_id']} 님 ",
         ).send()
@@ -155,11 +144,7 @@ async def on_chat_start():
 def on_logout(request: Request, response: Response):
     print('on_logout') 
     mymsgs.clear()
-    print(response.raw_headers)
-    if store['session_id']:
-        store['session_id'].clear()
     config['configurable']['session_id'] = None
-    response.delete_cookie("my_cookie")
     
     
     
