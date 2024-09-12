@@ -45,11 +45,17 @@ localdb.sql 에 관련 스키마 및 샘플 script 있음
 transactiondb.py 파일에 해당 kabang.db를 읽어 로그인과 거래내역서 요청 리스트를 확인 함 
 
 ## UiPath process 호출 
-uipathlib.py 파일을 이용해서 .env 에 설정된 정보로 인증을 처리하고 지징된 폴더 (매뉴얼로 지정)와 queue에 데이터 추가 후 자동으로 프로세스가 호출(큐 트리거)되고 실행되기를 기다렸다가 결과를  queue의 Output에 지정함 
-이 값을 읽어서 LLM 에 전달 함 
-실제 프로세스와 큐 트리거 구성은 Orchestrator에서 구성을 해줘야 함 
-큐에 추가되는 데이터의 입력(SpecificContent)에 값을 코드에서 사전에 지정해야 함 
-동일한 큐를 사용하는 경우를 고려해서 프로세스 식별자는 반드시 Reference를 사용해야 함 (우체국 등기조회는 PostOffice를 값으로 사용 함)
+1. uipathlib.py 파일을 이용해서 .env 에 설정된 정보로 인증을 처리함
+2. 프로세스를 호출시 지징된 폴더(매뉴얼로 지정)와 queue에 데이터 추가. app.py에서 수정 필요
+3. 큐 데이터 추가시 자동으로 프로세스가 호출(큐 트리거)되며 입력 데이터는 SpecificContent에 있는 항목을 찾음(이 부분은 사전에 코딩되어야 함)
+4. 내부적으로 thread가 수행되어 큐에 입력된 데이터가 처리완료 되기를 기다림.
+5. 큐 처리가 끝나면 결과를 Output에 result란 키로 기록함.
+6. thread가 Output("DynamicProperties")("result")를 읽어서 LLM으로 돌려 줌  
+
+고려 사항 
+1. 실제 프로세스와 큐 트리거 구성은 Orchestrator에서 구성을 해줘야 함 
+2. 큐에 추가되는 데이터의 입력(SpecificContent)에 값을 코드에서 사전에 지정해야 함
+3. 3.동일한 큐를 사용하는 경우를 고려해서 프로세스 식별자는 반드시 Reference를 사용해야 함 (우체국 등기조회는 PostOffice를 값으로 사용 함)
 
 ## 실행 방법 
 <code>
