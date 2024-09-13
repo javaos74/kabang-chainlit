@@ -26,7 +26,7 @@ import uipathlib
 load_dotenv()
 
 client = AsyncOpenAI()
-localdb = transactiondb.TransactionDB()
+localdb = transactiondb.TransactionCSV()
 
 prompt = ChatPromptTemplate.from_messages(
     [
