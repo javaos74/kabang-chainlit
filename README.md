@@ -21,6 +21,7 @@
 <code>
   cd mydemo 
   pip install -r requirements.txt 
+  pip install uipath_tools-0.4-py3.11.egg
 </code>
 
 ## 환경변수 구성하기 
