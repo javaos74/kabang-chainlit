@@ -21,7 +21,9 @@
 <code>
   cd mydemo 
   pip install -r requirements.txt 
-  pip install uipath_tools-0.4-py3.11.egg
+  git clone https://github.com/javaos74/uipath_tools 
+  cd uipath_tools
+  python setup.py install 
 </code>
 
 ## 환경변수 구성하기 
